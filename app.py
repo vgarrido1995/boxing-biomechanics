@@ -277,9 +277,8 @@ def find_acc_onset(acc_series, threshold):
             return i
     return 0
 
-@st.cache_data(show_spinner=False)
 def run_full_analysis(file_bytes, num_events, force_thresh, min_sep, window_size, acc_thresh, onset_thresh):
-    # Load and preprocess inline (avoid nested @st.cache_data calls)
+    # No @st.cache_data — avoids AttributeError on Streamlit Cloud Python 3.13
     raw = pd.read_excel(io.BytesIO(file_bytes))
     raw[["1x", "1y", "1z"]] = raw[["1x", "1y", "1z"]] * MILLI_G_TO_MPS2
     raw["resultant_acceleration"] = np.sqrt(raw["1x"]**2 + raw["1y"]**2 + raw["1z"]**2)
@@ -395,9 +394,27 @@ with st.sidebar:
     analyze = st.button(t["analyze_btn"], use_container_width=True, type="primary")
 
 # ─────────────────────────────────────────────────────────────────────────────
+# RESOLVE FILE + ATHLETE (before rendering anything)
+# ─────────────────────────────────────────────────────────────────────────────
+import os
+DEFAULT_FILE    = "K001_J left hand pad.xlsx"
+DEFAULT_ATHLETE = "K001_J"
+
+if uploaded is not None:
+    file_bytes      = uploaded.read()
+    athlete_display = athlete if athlete else uploaded.name.replace(".xlsx", "")
+elif os.path.exists(DEFAULT_FILE):
+    with open(DEFAULT_FILE, "rb") as _f:
+        file_bytes = _f.read()
+    athlete_display = athlete if athlete else DEFAULT_ATHLETE
+    st.sidebar.info("📂 Demo: K001_J left hand pad")
+else:
+    file_bytes      = None
+    athlete_display = athlete if athlete else ("Atleta" if lang == "es" else "Athlete")
+
+# ─────────────────────────────────────────────────────────────────────────────
 # HERO HEADER
 # ─────────────────────────────────────────────────────────────────────────────
-athlete_display = athlete if athlete else ("Atleta" if lang == "es" else "Athlete")  # may be overridden below
 st.markdown(f"""
 <div class="hero">
     <h1>🥊 {t['title']}</h1>
@@ -408,30 +425,15 @@ st.markdown(f"""
 # ─────────────────────────────────────────────────────────────────────────────
 # MAIN CONTENT
 # ─────────────────────────────────────────────────────────────────────────────
-DEFAULT_FILE = "K001_J left hand pad.xlsx"
-DEFAULT_ATHLETE = "K001_J"
-
-if uploaded is not None:
-    file_bytes = uploaded.read()
-    athlete_display = athlete if athlete else uploaded.name.replace(".xlsx", "")
-else:
-    # Load default dataset bundled with the repo
-    import os
-    if os.path.exists(DEFAULT_FILE):
-        with open(DEFAULT_FILE, "rb") as f:
-            file_bytes = f.read()
-        if not athlete:
-            athlete_display = DEFAULT_ATHLETE
-        st.sidebar.info("📂 Demo: K001_J left hand pad" if lang == "es" else "📂 Demo: K001_J left hand pad")
-    else:
-        st.markdown(f"""
-        <div style='text-align:center; padding:4rem 2rem;'>
-            <div style='font-size:5rem;'>🥊</div>
-            <h2 style='color:#C62828; font-weight:800;'>{t["upload_prompt"]}</h2>
-            <p style='color:#666; font-size:1rem;'>{t["upload_prompt_sub"]}</p>
-        </div>
-        """, unsafe_allow_html=True)
-        st.stop()
+if file_bytes is None:
+    st.markdown(f"""
+    <div style='text-align:center; padding:4rem 2rem;'>
+        <div style='font-size:5rem;'>🥊</div>
+        <h2 style='color:#C62828; font-weight:800;'>{t["upload_prompt"]}</h2>
+        <p style='color:#666; font-size:1rem;'>{t["upload_prompt_sub"]}</p>
+    </div>
+    """, unsafe_allow_html=True)
+    st.stop()
 with st.spinner("Procesando..." if lang == "es" else "Processing..."):
     raw, peak_indices, all_results, event_dfs = run_full_analysis(
         file_bytes, num_events, force_thresh, min_sep,
