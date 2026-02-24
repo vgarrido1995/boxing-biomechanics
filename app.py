@@ -278,16 +278,12 @@ def find_acc_onset(acc_series, threshold):
     return 0
 
 @st.cache_data(show_spinner=False)
-def load_and_preprocess(file_bytes):
-    df = pd.read_excel(io.BytesIO(file_bytes))
-    df[["1x", "1y", "1z"]] = df[["1x", "1y", "1z"]] * MILLI_G_TO_MPS2
-    df["resultant_acceleration"] = np.sqrt(df["1x"]**2 + df["1y"]**2 + df["1z"]**2)
-    df["resultant_force"] = np.sqrt(df["fx"]**2 + df["fy"]**2 + df["fz"]**2)
-    return df
-
-@st.cache_data(show_spinner=False)
 def run_full_analysis(file_bytes, num_events, force_thresh, min_sep, window_size, acc_thresh, onset_thresh):
-    raw = load_and_preprocess(file_bytes)
+    # Load and preprocess inline (avoid nested @st.cache_data calls)
+    raw = pd.read_excel(io.BytesIO(file_bytes))
+    raw[["1x", "1y", "1z"]] = raw[["1x", "1y", "1z"]] * MILLI_G_TO_MPS2
+    raw["resultant_acceleration"] = np.sqrt(raw["1x"]**2 + raw["1y"]**2 + raw["1z"]**2)
+    raw["resultant_force"] = np.sqrt(raw["fx"]**2 + raw["fy"]**2 + raw["fz"]**2)
     peak_indices = find_top_peaks(raw, num_events, force_thresh, min_sep)
     all_results = []
     event_dfs = {}
