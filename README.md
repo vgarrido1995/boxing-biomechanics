@@ -1,32 +1,72 @@
-# Code for obtaning kinematic variables from Noraxon biomechanics data.
+# 🥊 Boxing Biomechanics Lab
 
-## Overview
+Interactive web app for kinematic and kinetic analysis of boxing strikes using **Noraxon** IMU + force sensor data.
 
-This project focuses on the data slicing of a main file, primarily aimed at analyzing single events within a dataset. It is designed to guide users through the initial setup and subsequent analysis of specific events, with a keen emphasis on speed calculations and their implications on data visualization.
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://share.streamlit.io)
 
-## Getting Started
+---
 
-### Initial Setup
+## Features / Características
 
-1. **CZĘŚĆ CIĘCIA GŁÓWNEGO PLIKU - PIERWSZE ODPALENIE**: Start by slicing the main file. This step is crucial for preparing your dataset for detailed analysis. Follow the instructions within the notebook to correctly slice your main data file.
+- 📁 **Upload** Noraxon Excel files directly in the browser
+- 🎯 **Auto-detect** up to 10 strike events by peak force
+- 📊 **Interactive Plotly charts** — zoom, hover, pan
+- 🌐 **Bilingual** — Español / English
+- 📈 **Metrics computed per strike:**
+  - Peak Force, Net Peak Force (N)
+  - Time to Peak, Contact Duration (ms)
+  - Total Impulse, Impulse to Peak (N·s)
+  - Max RFD, Max Jerk (N/s, N/s²)
+  - Force @ 10ms, Force @ 20ms (N)
+  - RFD 0–10ms, RFD 0–20ms (N/s)
+  - Impact Velocity, Max Velocity (m/s)
+  - Acceleration at Impact (m/s²)
+- 💾 **Export** all results to Excel (summary + per-event raw data)
 
-### Detailed Event Analysis
+---
 
-2. **Event-Specific Analysis**: After the initial setup, the project shifts focus to the analysis of specific events. This involves changing parameters within the notebook to target individual events (from event_1 to event_5). It's important to note that the analysis is tailored to single impact events, and the correct file naming is critical for accurate speed calculation and visualization.
+## Data Format
 
-## Requirements
+The app expects an Excel file exported from Noraxon with the following columns:
 
-- Ensure you have Jupyter Notebook or JupyterLab installed to run the `.ipynb` file.
-- Familiarity with Python and basic data analysis libraries (e.g., pandas, matplotlib) is recommended.
+| Column | Description | Unit |
+|--------|-------------|------|
+| `Time` | Timestamp | s |
+| `1x`, `1y`, `1z` | Accelerometer 1 (fist) | milli-g |
+| `2x`, `2y`, `2z` | Accelerometer 2 | milli-g |
+| `3x`, `3y`, `3z` | Accelerometer 3 | milli-g |
+| `fx`, `fy`, `fz` | Force sensor | N |
 
-## Usage
+---
 
-To use this project, open the `data slicing (1).ipynb` notebook in Jupyter and follow the step-by-step instructions. The notebook is structured to guide you through the process, from initial data slicing to in-depth analysis of specific events.
+## Run Locally
 
-## Contributing
+```bash
+pip install -r requirements.txt
+streamlit run app.py
+```
 
-Contributions to this project are welcome. Please feel free to fork the repository, make your changes, and submit a pull request.
+---
+
+## Deploy to Streamlit Cloud (Free)
+
+1. **Fork or push** this repo to your GitHub account
+2. Go to [share.streamlit.io](https://share.streamlit.io)
+3. Click **"New app"**
+4. Select your repo → branch `main` → file `app.py`
+5. Click **"Deploy"** — your URL will be ready in ~2 minutes
+
+---
+
+## Tech Stack
+
+- [Streamlit](https://streamlit.io) — web framework
+- [Plotly](https://plotly.com/python/) — interactive charts
+- [Pandas](https://pandas.pydata.org) + [NumPy](https://numpy.org) — data analysis
+- [OpenPyXL](https://openpyxl.readthedocs.io) — Excel export
+
+---
 
 ## License
 
-This project is open-sourced under the MIT License. See the LICENSE file for more details.
+MIT
