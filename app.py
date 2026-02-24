@@ -397,7 +397,7 @@ with st.sidebar:
 # ─────────────────────────────────────────────────────────────────────────────
 # HERO HEADER
 # ─────────────────────────────────────────────────────────────────────────────
-athlete_display = athlete if athlete else ("Atleta" if lang == "es" else "Athlete")
+athlete_display = athlete if athlete else ("Atleta" if lang == "es" else "Athlete")  # may be overridden below
 st.markdown(f"""
 <div class="hero">
     <h1>🥊 {t['title']}</h1>
@@ -408,18 +408,30 @@ st.markdown(f"""
 # ─────────────────────────────────────────────────────────────────────────────
 # MAIN CONTENT
 # ─────────────────────────────────────────────────────────────────────────────
-if uploaded is None:
-    st.markdown(f"""
-    <div style='text-align:center; padding:4rem 2rem;'>
-        <div style='font-size:5rem;'>🥊</div>
-        <h2 style='color:#C62828; font-weight:800;'>{t["upload_prompt"]}</h2>
-        <p style='color:#666; font-size:1rem;'>{t["upload_prompt_sub"]}</p>
-    </div>
-    """, unsafe_allow_html=True)
-    st.stop()
+DEFAULT_FILE = "K001_J left hand pad.xlsx"
+DEFAULT_ATHLETE = "K001_J"
 
-# ── Run analysis ──────────────────────────────────────────────────────────────
-file_bytes = uploaded.read()
+if uploaded is not None:
+    file_bytes = uploaded.read()
+    athlete_display = athlete if athlete else uploaded.name.replace(".xlsx", "")
+else:
+    # Load default dataset bundled with the repo
+    import os
+    if os.path.exists(DEFAULT_FILE):
+        with open(DEFAULT_FILE, "rb") as f:
+            file_bytes = f.read()
+        if not athlete:
+            athlete_display = DEFAULT_ATHLETE
+        st.sidebar.info("📂 Demo: K001_J left hand pad" if lang == "es" else "📂 Demo: K001_J left hand pad")
+    else:
+        st.markdown(f"""
+        <div style='text-align:center; padding:4rem 2rem;'>
+            <div style='font-size:5rem;'>🥊</div>
+            <h2 style='color:#C62828; font-weight:800;'>{t["upload_prompt"]}</h2>
+            <p style='color:#666; font-size:1rem;'>{t["upload_prompt_sub"]}</p>
+        </div>
+        """, unsafe_allow_html=True)
+        st.stop()
 with st.spinner("Procesando..." if lang == "es" else "Processing..."):
     raw, peak_indices, all_results, event_dfs = run_full_analysis(
         file_bytes, num_events, force_thresh, min_sep,
